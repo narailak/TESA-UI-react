@@ -10,8 +10,8 @@
 
 /* ===== ส่วนซ้าย (25%) ===== */
 .col-left {
-  flex: 2.5; /* อัตราส่วน 3 จากทั้งหมด 10 */
-  border-right: 4px solid red;     /* เส้นขอบแดง */
+  flex: 2; /* อัตราส่วน 3 จากทั้งหมด 10 */
+  border-right: 4px solid rgb(0, 0, 0);     /* เส้นขอบแดง */
   background-color: #ffe5e5;       /* สีพื้นจางๆ เพื่อแยกพื้นที่ */
   display: flex;
   align-items: center;
@@ -20,9 +20,9 @@
 
 /* ===== ส่วนกลาง (50%) ===== */
 .col-center {
-  flex: 5;
-  border-left: 4px solid red;      /* ขอบแดงฝั่งซ้าย */
-  border-right: 4px solid blue;    /* ขอบน้ำเงินฝั่งขวา */
+  flex: 6;
+  border-left: 4px solid rgb(0, 0, 0);      /* ขอบแดงฝั่งซ้าย */
+  border-right: 4px solid rgb(0, 0, 0);    /* ขอบน้ำเงินฝั่งขวา */
   background-color: #f0f0f0;
   display: flex;
   align-items: center;
@@ -31,8 +31,8 @@
 
 /* ===== ส่วนขวา (25%) ===== */
 .col-right {
-  flex: 2.5;
-  border-left: 4px solid blue;     /* เส้นขอบน้ำเงิน */
+  flex: 2;
+  border-left: 4px solid rgb(0, 0, 0);     /* เส้นขอบน้ำเงิน */
   background-color: #e5f0ff;
   display: flex;
   align-items: center;

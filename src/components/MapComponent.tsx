@@ -57,7 +57,7 @@ const MapComponent = ({
   // ✅ ฟังก์ชันเลือก icon ตามประเภท
   const getIconName = (type: string): string => {
     const lower = type.toLowerCase();
-    if (lower === "tank") return "mdi:map-marker"; // 🟢 ใช้หมุดแทน
+    if (lower === "tank") return "mdi:castle"; // 🟢 ใช้หมุดแทน
     if (lower === "drone") return "healthicons:drone"; // 🔴 ใช้โดรนเหมือนเดิม
     return "mdi:map-marker";
   };

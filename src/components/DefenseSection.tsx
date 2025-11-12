@@ -83,6 +83,10 @@ const DefenseSection: React.FC<Props> = ({
         <img src={latestImage} alt="Latest Drone" className="real-image" />
       </div>
 
+      <div className="History-defence">
+        <span>Defence History</span>
+      </div>
+      
       <div className="defence-history">
         <div className="history-list">
           {events.map((ev) => (

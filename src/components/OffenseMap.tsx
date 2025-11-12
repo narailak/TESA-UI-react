@@ -13,7 +13,7 @@ const OffenseMap: React.FC<Props> = ({ offenseEvents, importantLocation }) => {
   // ✅ 1) ปักหมุด "หมุน" (ศูนย์กลาง) จาก ImportantLocation
   const centerPin: DetectedObject = {
     obj_id: "Center",
-    type: "center",                   // ✅ ชนิดเป็น "หมุน" ตามที่ขอ
+    type: "tank",                   // ✅ ชนิดเป็น "หมุน" ตามที่ขอ
     lat: importantLocation.lat,
     lng: importantLocation.lng,
     objective: "center",            // ✅ objective: center
