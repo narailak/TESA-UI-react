@@ -56,7 +56,7 @@ const axiosInstance = axios.create({
         </Box>
 
         <Alert severity="success" sx={{ mt: 2 }}>
-          ✅ <strong>ข้อดีของ React Query:</strong> Automatic caching, Auto refetch, Loading & Error states
+           <strong>ข้อดีของ React Query:</strong> Automatic caching, Auto refetch, Loading & Error states
         </Alert>
       </Paper>
 

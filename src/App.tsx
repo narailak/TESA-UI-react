@@ -1,15 +1,21 @@
 // src/App.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import HomePage from "./pages/HomePage";
+import { io, Socket } from "socket.io-client";
 
+// ================== Types ==================
 export type DefenseEvent = {
-  id: number;
+  id: number;              // ใช้เป็น key ใน React list
   objId: string;
   type: string;
   lat: number;
   lng: number;
-  timestamp: string;
-  image?: string; // ✅ รูป
+  alt?: number;            // altitude (meters) - optional
+  direction?: number[];    // เวกเตอร์/มุม เช่น [dx, dy, dz] หรือ [headingDegrees]
+  velocity?: number;       // ความเร็ว (m/s)
+  acceleration?: number;   // ความเร่ง (m/s^2)
+  timestamp: string;       // เวลาเป็น string (e.g. "15:06:08")
+  image?: string;          // url รูป (optional)
 };
 
 export type OffenseEvent = {
@@ -17,82 +23,89 @@ export type OffenseEvent = {
   lat: number;
   lng: number;
   timestamp: string;   // e.g. "15:06:08"
-  altitude?: number;   // optional
-  speed?: number;      // optional
+  altitude?: number;   // optional (meters)
+  speed?: number;      // optional (m/s)
 };
 
-// ✅ จุดสำคัญ (สำรอง)
 export type ImportantLocation = {
   lat: number;
   lng: number;
 };
 
+// ================== Config ==================
 const DEFAULT_IMPORTANT_LOCATION: ImportantLocation = {
   lat: 14.298527,
   lng: 101.166479,
 };
 
-function App() {
-  const [defenseEvents, setDefenseEvents] = useState<DefenseEvent[]>([
-    {
-      id: 4,
-      objId: "004",
-      type: "drone",
-      lat: 14.297220,
-      lng: 101.167100,
-      timestamp: "15:09:44",
-      image: "https://cdn-icons-png.flaticon.com/512/2920/2920233.png",
-    },
-    {
-      id: 1,
-      objId: "001",
-      type: "drone",
-      lat: 14.2976,
-      lng: 101.1663,
-      timestamp: "15:06:08",
-      image: "https://cdn-icons-png.flaticon.com/512/2920/2920233.png",
-    },
-    {
-      id: 2,
-      objId: "002",
-      type: "drone",
-      lat: 14.29812,
-      lng: 101.16598,
-      timestamp: "15:07:12",
-      image: "https://cdn-icons-png.flaticon.com/512/2920/2920249.png",
-    },
-    {
-      id: 3,
-      objId: "003",
-      type: "drone",
-      lat: 14.296950,
-      lng: 101.166750,
-      timestamp: "15:08:21",
-      image: "https://cdn-icons-png.flaticon.com/512/2920/2920233.png",
-    },
-    {
-      id: 5,
-      objId: "005",
-      type: "drone",
-      lat: 14.297880,
-      lng: 101.166010,
-      timestamp: "15:10:03",
-      image: "https://cdn-icons-png.flaticon.com/512/2920/2920233.png",
-    },
-  ]);
+// 👉 แก้ IP/port ให้ตรงกับ new_server.py
+const socket: Socket = io("http://192.168.50.172:3000", {
+  transports: ["websocket"],
+});
 
-  // ✅ ข้อมูลฝั่ง Offense
+// ================== APP ==================
+function App() {
+  const [defenseEvents, setDefenseEvents] = useState<DefenseEvent[]>([]);
+
+  // Offense ใส่ static ไว้ก่อนเหมือนเดิม
   const [offenseEvents] = useState<OffenseEvent[]>([
     { id: 1, lat: 14.297600, lng: 101.166300, timestamp: "15:06:08", altitude: 120.5, speed: 14.3 },
-    { id: 2, lat: 14.298120, lng: 101.165980, timestamp: "15:07:12" },
+    { id: 2, lat: 14.298120, lng: 101.165980, timestamp: "15:07:12", altitude: 110.0, speed: 9.8 },
     { id: 3, lat: 14.296950, lng: 101.166750, timestamp: "15:08:21", speed: 11.9 },
     { id: 4, lat: 14.297220, lng: 101.167100, timestamp: "15:09:44", altitude: 95.0 },
     { id: 5, lat: 14.297880, lng: 101.166010, timestamp: "15:10:03", altitude: 110.2, speed: 12.7 },
   ]);
 
-  // ✅ จุดสำคัญในแผนที่ (ใช้ useState เพื่อให้ DefenseSection/Map ปรับได้)
   const [importantLocation, setImportantLocation] =
     useState<ImportantLocation>(DEFAULT_IMPORTANT_LOCATION);
+
+  useEffect(() => {
+    // connect + join room cam_01
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      socket.emit("join", { role: "web", cam_id: "cam_01" });
+    });
+
+    socket.on("joined", (msg) => {
+      console.log("Joined room:", msg);
+    });
+
+    // ⭐ ฟัง event 'defense' ที่ server ส่งมา
+    socket.on("defense", (payload: DefenseEvent[] | DefenseEvent) => {
+      console.log("DEFENSE payload:", payload);
+
+      const eventsArray: DefenseEvent[] = Array.isArray(payload)
+        ? payload
+        : [payload];
+
+      // จะเลือก strategy ยังไงก็ได้:
+      // 1) แทนที่ทั้งหมดด้วย snapshot ล่าสุด
+      setDefenseEvents(eventsArray);
+
+      // 2) หรือถ้าอยาก append/merge ลองแบบนี้แทน:
+      // setDefenseEvents((prev) => {
+      //   const merged = [...eventsArray];
+      //   for (const old of prev) {
+      //     if (!merged.find((e) => e.objId === old.objId)) {
+      //       merged.push(old);
+      //     }
+      //   }
+      //   return merged;
+      // });
+    });
+
+    // (ถ้ายังใช้ meta/pack จาก server ตัวเก่าอยู่ จะฟังเพิ่มก็ได้)
+    // socket.on("meta", (payload: any) => { ... });
+    // socket.on("pack", (payload: any) => { ... });
+
+    return () => {
+      socket.off("connect");
+      socket.off("joined");
+      socket.off("defense");
+      // socket.off("meta");
+      // socket.off("pack");
+    };
+  }, []);
 
   return (
     <HomePage
