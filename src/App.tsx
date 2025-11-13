@@ -38,16 +38,17 @@ const DEFAULT_IMPORTANT_LOCATION: ImportantLocation = {
   lng: 101.166479,
 };
 
-// 👉 แก้ IP/port ให้ตรงกับ new_server.py
+// 👉 เปลี่ยน URL ให้ตรงกับ new_server.py ของคุณ
 const socket: Socket = io("http://192.168.50.172:3000", {
   transports: ["websocket"],
 });
 
 // ================== APP ==================
 function App() {
+  // ประวัติ DefenseEvent ทั้งหมด (ใหม่อยู่บนสุด)
   const [defenseEvents, setDefenseEvents] = useState<DefenseEvent[]>([]);
 
-  // Offense ใส่ static ไว้ก่อนเหมือนเดิม
+  // Offense ยังใช้ static ไปก่อน
   const [offenseEvents] = useState<OffenseEvent[]>([
     { id: 1, lat: 14.297600, lng: 101.166300, timestamp: "15:06:08", altitude: 120.5, speed: 14.3 },
     { id: 2, lat: 14.298120, lng: 101.165980, timestamp: "15:07:12", altitude: 110.0, speed: 9.8 },
@@ -70,40 +71,29 @@ function App() {
       console.log("Joined room:", msg);
     });
 
-    // ⭐ ฟัง event 'defense' ที่ server ส่งมา
+    // ⭐ ฟัง event 'defense' แล้วเก็บเป็นประวัติ (ใหม่อยู่บนสุด)
     socket.on("defense", (payload: DefenseEvent[] | DefenseEvent) => {
       console.log("DEFENSE payload:", payload);
 
-      const eventsArray: DefenseEvent[] = Array.isArray(payload)
+      const incoming: DefenseEvent[] = Array.isArray(payload)
         ? payload
         : [payload];
 
-      // จะเลือก strategy ยังไงก็ได้:
-      // 1) แทนที่ทั้งหมดด้วย snapshot ล่าสุด
-      setDefenseEvents(eventsArray);
+      setDefenseEvents((prev) => {
+        // เอาข้อมูลรอบนี้วางไว้ด้านหน้า แล้วตามด้วยของเก่า = ใหม่บนสุด
+        const merged = [...incoming, ...prev];
 
-      // 2) หรือถ้าอยาก append/merge ลองแบบนี้แทน:
-      // setDefenseEvents((prev) => {
-      //   const merged = [...eventsArray];
-      //   for (const old of prev) {
-      //     if (!merged.find((e) => e.objId === old.objId)) {
-      //       merged.push(old);
-      //     }
-      //   }
-      //   return merged;
-      // });
+        // ถ้าอยากจำกัดจำนวนประวัติ (เช่น 200 รายการ)
+        const MAX_HISTORY = 200;
+        return merged.slice(0, MAX_HISTORY);
+      });
     });
 
-    // (ถ้ายังใช้ meta/pack จาก server ตัวเก่าอยู่ จะฟังเพิ่มก็ได้)
-    // socket.on("meta", (payload: any) => { ... });
-    // socket.on("pack", (payload: any) => { ... });
-
+    // cleanup ตอน unmount / HMR
     return () => {
       socket.off("connect");
       socket.off("joined");
       socket.off("defense");
-      // socket.off("meta");
-      // socket.off("pack");
     };
   }, []);
 
