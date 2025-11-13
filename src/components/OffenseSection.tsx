@@ -53,7 +53,7 @@ const OffenseSection: React.FC<Props> = ({ events }) => {
       {/* ===== ส่วนล่าง: Offence History (เหมือนเดิม) ===== */}
       <div className="History-offence">Offence History</div>
 
-      <div className="offence-history">
+      <div className="offence-history"> 
         <div className="offence-list">
           {events.map((ev) => (
             <article className="offence-card" key={ev.id}>

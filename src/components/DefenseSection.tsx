@@ -1,6 +1,8 @@
+// src/components/DefenseSection.tsx
 import React, { useState } from "react";
 import "./defence-section.css";
 import type { DefenseEvent, ImportantLocation } from "../App";
+import ImageViewer from "../components/ImageViewer"; // ✅ เพิ่มบรรทัดนี้
 
 type Props = {
   events: DefenseEvent[];
@@ -68,7 +70,15 @@ const DefenseSection: React.FC<Props> = ({
       {/* ===== Status Drone ===== */}
       <div className="status-drone">
         <div className="drone-image">
-          <img src={FALLBACK_IMG} alt="Drone" />
+          {/* ⬇️ ใช้ ImageViewer เพื่อคลิกขยาย */}
+          <ImageViewer
+            src={latestImage}
+            alt="Nearest/Latest Drone"
+            width={96}
+            height={96}
+            objectFit="contain"
+            rounded
+          />
         </div>
         <div className="drone-info">
           <p><strong>Important Point:</strong></p>
@@ -79,30 +89,50 @@ const DefenseSection: React.FC<Props> = ({
 
       <div className="video-real">Video - Real</div>
 
+      {/* ===== ภาพจริงล่าสุด (คลิกขยาย) ===== */}
       <div className="img-real">
-        <img src={latestImage} alt="Latest Drone" className="real-image" />
+        <ImageViewer
+          src={latestImage}
+          alt="Latest Drone Image"
+          width="100%"
+          height="100%"
+          objectFit="cover"
+          className="img-real__image"   // ✅ ให้ CSS ควบคุม
+          rounded
+        />
       </div>
 
       <div className="History-defence">
         <span>Defence History</span>
       </div>
-      
+
+      {/* ===== ประวัติ (การ์ด + รูปคลิกขยาย) ===== */}
       <div className="defence-history">
         <div className="history-list">
-          {events.map((ev) => (
-            <article className="history-card" key={ev.id}>
-              <div className="drone-image">
-                <img src={ev.image || FALLBACK_IMG} alt={ev.type} />
-              </div>
-              <div className="drone-info">
-                <p><strong>obj-id:</strong> {ev.objId}</p>
-                <p><strong>type:</strong> {ev.type}</p>
-                <p><strong>lat:</strong> {ev.lat.toFixed(6)}</p>
-                <p><strong>lng:</strong> {ev.lng.toFixed(6)}</p>
-                <p><strong>timestamp:</strong> {ev.timestamp}</p>
-              </div>
-            </article>
-          ))}
+          {events.map((ev) => {
+            const imgSrc = ev.image || FALLBACK_IMG;
+            return (
+              <article className="history-card" key={ev.id}>
+                <div className="drone-image">
+                  <ImageViewer
+                    src={imgSrc}
+                    alt={ev.type}
+                    width={96}
+                    height={96}
+                    objectFit="cover"
+                    rounded
+                  />
+                </div>
+                <div className="drone-info">
+                  <p><strong>obj-id:</strong> {ev.objId}</p>
+                  <p><strong>type:</strong> {ev.type}</p>
+                  <p><strong>lat:</strong> {ev.lat.toFixed(6)}</p>
+                  <p><strong>lng:</strong> {ev.lng.toFixed(6)}</p>
+                  <p><strong>timestamp:</strong> {ev.timestamp}</p>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
